@@ -53,6 +53,7 @@
       </editor>
       <editor
             class="tela.editor.TipoFuncionarioEditor"
+            icon="assents/tipoFuncionario/tipoFuncionario16.png"
             id="tela.editor.TipoFuncionarioEditor"
             name="Tipo de funcionário">
       </editor>
@@ -70,6 +71,7 @@
       </editor>
       <editor
             class="tela.editor.StatusEditor"
+            icon="assents/status/status16.png"
             id="tela.editor.StatusEditor"
             name="Status">
       </editor>
@@ -77,6 +79,17 @@
             class="tela.editor.AbrirOrdemServicoEditor"
             id="tela.editor.AbrirOrdemServicoEditor"
             name="Abrir ordem de serviço">
+      </editor>
+      <editor
+            class="tela.editor.FecharOrdemServicoEditor"
+            id="tela.editor.FecharOrdemServicoEditor"
+            name="Fechar ordem de serviço">
+      </editor>
+      <editor
+            class="tela.editor.FormaPagamentoEditor"
+            icon="assents/formaPagamento/formaPagamento16.png"
+            id="tela.editor.FormaPagamentoEditor"
+            name="Forma de pagamento">
       </editor>
    </extension>
    <extension
@@ -113,6 +126,7 @@
       </view>
       <view
             class="tela.view.TipoFuncionarioView"
+            icon="assents/tipoFuncionario/tipoFuncionario16.png"
             id="tela.view.TipoFuncionarioView"
             name="Lista de tipos de funcionário">
       </view>
@@ -130,6 +144,7 @@
       </view>
       <view
             class="tela.view.StatusView"
+            icon="assents/status/status16.png"
             id="tela.view.StatusView"
             name="Lista de status">
       </view>
@@ -138,6 +153,29 @@
             id="tela.view.ServicoPrestadoView"
             name="Serviços Prestados">
       </view>
+      <view
+            class="tela.view.FormaPagamentoView"
+            icon="assents/formaPagamento/formaPagamento16.png"
+            id="tela.view.FormaPagamentoView"
+            name="Lista de formas de pagamento">
+      </view>
+      <view
+            class="tela.view.ReportView"
+            icon="assents/funcoes/report16.png"
+            id="tela.view.ReportView"
+            name="Relatório">
+      </view>
+      <view
+            class="tela.view.BaixaDuplicataView"
+            icon="assents/duplicata/duplicata16.png"
+            id="tela.view.BaixaDuplicataView"
+            name="Baixa de duplicatas">
+      </view>
+      <view
+            class="tela.view.DuplicataPagaView"
+            id="tela.view.DuplicataPagaView"
+            name="Lista de duplicatas pagas">
+      </view>
    </extension>
    <extension
          point="org.eclipse.ui.menus">
@@ -145,6 +183,16 @@
             locationURI="menu:org.eclipse.ui.main.menu">
          <menu
                label="Arquivo">
+            <command
+                  commandId="mecasoft.configuracaoCommand"
+                  icon="assents/funcoes/config16.png"
+                  label="Configurações"
+                  style="push">
+            </command>
+            <separator
+                  name="mecasoft.separator1"
+                  visible="true">
+            </separator>
             <command
                   commandId="mecasoft.reiniciarCommand"
                   icon="assents/funcoes/reset16.png"
@@ -191,6 +239,7 @@
             </command>
             <command
                   commandId="org.eclipse.ui.views.showView"
+                  icon="assents/tipoFuncionario/tipoFuncionario16.png"
                   id="mecasoft.menuTipoFuncionario"
                   label="Tipo de funcionário">
                <parameter
@@ -240,11 +289,22 @@
             </command>
             <command
                   commandId="org.eclipse.ui.views.showView"
+                  icon="assents/status/status16.png"
                   id="mecasoft.menuStatus"
                   label="Status">
                <parameter
                      name="org.eclipse.ui.views.showView.viewId"
                      value="tela.view.StatusView">
+               </parameter>
+            </command>
+            <command
+                  commandId="org.eclipse.ui.views.showView"
+                  icon="assents/formaPagamento/formaPagamento16.png"
+                  id="mecasoft.menuFormaPagamento"
+                  label="Forma de pagamento">
+               <parameter
+                     name="org.eclipse.ui.views.showView.viewId"
+                     value="tela.view.FormaPagamentoView">
                </parameter>
             </command>
          </menu>
@@ -258,6 +318,41 @@
                      name="org.eclipse.ui.views.showView.viewId"
                      value="tela.view.ServicoPrestadoView">
                </parameter>
+            </command>
+            <menu
+                  label="Duplicatas">
+               <command
+                     commandId="org.eclipse.ui.views.showView"
+                     icon="assents/duplicata/duplicata16.png"
+                     label="Baixa de duplicatas"
+                     style="push">
+                  <parameter
+                        name="org.eclipse.ui.views.showView.viewId"
+                        value="tela.view.BaixaDuplicataView">
+                  </parameter>
+               </command>
+               <command
+                     commandId="org.eclipse.ui.views.showView"
+                     label="Baixa de duplicatas"
+                     style="push">
+                  <parameter
+                        name="org.eclipse.ui.views.showView.viewId"
+                        value="tela.view.DuplicataPagaView">
+                  </parameter>
+               </command>
+            </menu>
+         </menu>
+         <menu
+               label="Relatório">
+            <command
+                  commandId="mecasoft.showServicoSinteticoCommand"
+                  label="Serviço sintético"
+                  style="push">
+            </command>
+            <command
+                  commandId="mecasoft.showServicoAnaliticoCommand"
+                  label="Serviço analítico"
+                  style="push">
             </command>
          </menu>
       </menuContribution>
@@ -278,6 +373,21 @@
             defaultHandler="aplicacao.command.SairCommand"
             id="mecasoft.sairCommand"
             name="Sair">
+      </command>
+      <command
+            defaultHandler="aplicacao.command.ConfiguracaoCommand"
+            id="mecasoft.configuracaoCommand"
+            name="Configuração">
+      </command>
+      <command
+            defaultHandler="aplicacao.command.reports.ShowServicoSinteticoCommand"
+            id="mecasoft.showServicoSinteticoCommand"
+            name="Relatório de serviços sintético">
+      </command>
+      <command
+            defaultHandler="aplicacao.command.reports.ShowServicoAnaliticoCommand"
+            id="mecasoft.showServicoAnaliticoCommand"
+            name="Relatório de serviços analítico">
       </command>
    </extension>
    <extension

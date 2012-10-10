@@ -5,9 +5,9 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Text;
-import org.eclipse.swt.layout.GridLayout;
 
 public class MecasoftText extends Composite {
 
@@ -16,6 +16,8 @@ public class MecasoftText extends Composite {
 	public static Integer LETRAS = 1;
 
 	private boolean passou;
+	private Integer tamanhoAnterior;
+	private Integer posicaoCursor;
 	private Integer max;
 	private Integer aceita;
 	private String caracteres;
@@ -27,12 +29,6 @@ public class MecasoftText extends Composite {
 	
 	public Text text;
 
-	/**
-	 * Create the composite.
-	 * 
-	 * @param parent
-	 * @param style
-	 */
 	public MecasoftText(Composite parent, int style) {
 		super(parent, style);
 		
@@ -61,12 +57,20 @@ public class MecasoftText extends Composite {
 			public void keyReleased(KeyEvent e) {
 				formatar();
 			}
+			
 		});
 
 	}
 
 	private void formatar() {
 		if(passou){
+
+			//pega posicao do cursor para ele nao sair do lugar
+			posicaoCursor = text.getCaretPosition();
+			
+			//pega o tamanho atual do texto para comparar com o novo tamanho e ver se o cursor ira mudar de posicao ou nao
+			tamanhoAnterior = text.getText().length();
+			
 			texto = text.getText();
 			for(int c = 0; c < caracteres.length(); c++)
 				texto = StringUtils.remove(texto, caracteres.charAt(c));
@@ -97,7 +101,14 @@ public class MecasoftText extends Composite {
 			}
 			
 			text.setText(textoRetorno);
-			text.setSelection(textoRetorno.length());
+			
+			//verifica se o texto aumento
+			tamanhoAnterior = textoRetorno.length() - tamanhoAnterior;
+			if(tamanhoAnterior > 0)
+				posicaoCursor += tamanhoAnterior;
+			
+			//seta a posiçao do cursor onde ela deveria ficar
+			text.setSelection(posicaoCursor, posicaoCursor);
 			
 		}
 		
@@ -124,9 +135,8 @@ public class MecasoftText extends Composite {
 				return true;
 
 			if (aceita.equals(NUMEROS)
-					&& ((keyCode >= 48 && keyCode <= 57) || (keyCode >= 16777225 && keyCode <= 16777221)))
+					&& ((keyCode >= 48 && keyCode <= 57) || (keyCode >= 16777264 && keyCode <= 16777273))) 
 				return true;
-
 		}
 
 		return false;

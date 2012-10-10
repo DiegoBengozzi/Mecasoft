@@ -56,16 +56,11 @@ public class ServicoEditor extends MecasoftEditor {
 	}
 
 	@Override
-	public void salvarRegistro() {
-		try {
-			validar(service.getProdutoServico());
+	public void salvarRegistro() throws ValidationException{
+		validar(service.getProdutoServico());
 			
-			service.saveOrUpdate();
-			openInformation("Serviço cadastrado com sucesso!");
-			closeThisEditor();
-		} catch (ValidationException e) {
-			setErroMessage(e.getMessage());
-		}
+		service.saveOrUpdate();
+		openInformation("Serviço cadastrado com sucesso!");
 	}
 
 	@Override
@@ -134,6 +129,11 @@ public class ServicoEditor extends MecasoftEditor {
 			public void widgetSelected(SelectionEvent e) {
 				ProdutoServico ps = selecionarProduto();
 				if(ps != null){
+					if(service.getProdutoServico().getListaProduto().contains(ps)){
+						setErroMessage("O produto selecionado já esta parametrizado neste serviço.");
+						return;
+					}
+					
 					service.getProdutoServico().getListaProduto().add(ps);
 					tvProdutos.refresh();
 				}

@@ -10,6 +10,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.validation.constraints.NotNull;
 
 @Entity
 public class FormaPagtoUtilizada implements Serializable{
@@ -24,9 +25,11 @@ public class FormaPagtoUtilizada implements Serializable{
 	private Long id;
 	
 	@Column
-	private BigDecimal valor;
+	@NotNull(message="Informe o valor.")
+	private BigDecimal valor = BigDecimal.ZERO;
 	
 	@ManyToOne
+	@NotNull(message="Selecione uma forma de pagamento.")
 	private FormaPagamento formaPagamento;
 	
 	@ManyToOne

@@ -13,18 +13,26 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.validation.constraints.NotNull;
+
+import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.CascadeType;
+import org.hibernate.validator.constraints.NotEmpty;
 
 @Entity
 public class ServicoPrestado implements Serializable{
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 9195363929741867859L;
 	
 	@Id
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
 	private Long id;
+	
+	@Column
+	private boolean ativo = true;
+	
+	@Column
+	private boolean emExecucao = true;
 	
 	@Column
 	private BigDecimal totalServico;
@@ -33,49 +41,66 @@ public class ServicoPrestado implements Serializable{
 	private BigDecimal totalItens;
 	
 	@Column
-	private BigDecimal totalLocomocao;
+	private BigDecimal totalLocomocao = BigDecimal.ZERO;
 	
 	@Column
-	private BigDecimal totalMaoObra;
+	private BigDecimal totalMaoObra = BigDecimal.ZERO;
 	
 	@Column
 	private BigDecimal valorTotal;
 	
 	@Column
-	private BigDecimal desconto;
+	private BigDecimal desconto = BigDecimal.ZERO;
 	
 	@Column
-	private BigDecimal troco;
+	private BigDecimal troco = BigDecimal.ZERO;
 	
 	@Column
-	private BigDecimal valorEntrada;
+	private BigDecimal valorEntrada = BigDecimal.ZERO;
 	
 	@Column
-	private BigDecimal juros;
+	private BigDecimal juros = BigDecimal.ZERO;
 	
 	@Column
-	private Date dataAbertura;
+	private Date dataAbertura = new Date();
 	
 	@Column
 	private Date dataFechamento;
 	
 	@ManyToOne
+	@NotNull(message="Selecione o cliente.")
 	private Pessoa cliente;
 	
 	@ManyToOne
+	@NotNull(message="Selecione o veículo")
 	private Veiculo veiculo;
 	
-	@OneToMany(mappedBy="servicoPrestado")
-	private List<ItemServico> listaServicos;
+	@OneToMany(mappedBy="servicoPrestado", orphanRemoval=true)
+	@Cascade(value={CascadeType.ALL})
+	private List<ItemServico> listaServicos = new ArrayList<ItemServico>();
 	
 	@OneToMany(mappedBy="servicoPrestado")
-	private List<ItemServico> listaProdutos;
+	@Cascade(value={CascadeType.ALL})
+	private List<ItemServico> listaProdutos = new ArrayList<ItemServico>();
 	
-	@OneToMany(mappedBy="servicoPrestado")
+	@OneToMany(mappedBy="servicoPrestado", orphanRemoval=true)
+	@NotEmpty(message="Adicione ao menos um status.")
+	@Cascade(value={CascadeType.ALL})
 	private List<StatusServico> listaStatus = new ArrayList<StatusServico>();
 	
 	@OneToMany(mappedBy="servicoPrestado")
-	private List<FormaPagtoUtilizada> listaFormaPagto;
+	private List<FormaPagtoUtilizada> listaFormaPagto = new ArrayList<FormaPagtoUtilizada>();
+	
+	public StatusServico getUltimoStatus(){
+		StatusServico ultimoStatus = null;
+		
+		for(StatusServico status : listaStatus){
+			if(ultimoStatus == null || status.getData().compareTo(ultimoStatus.getData()) > 0)
+				ultimoStatus = status;
+		}
+		
+		return ultimoStatus;
+	}
 
 	public Long getId() {
 		return id;
@@ -244,6 +269,22 @@ public class ServicoPrestado implements Serializable{
 		} else if (!id.equals(other.id))
 			return false;
 		return true;
+	}
+
+	public boolean isAtivo() {
+		return ativo;
+	}
+
+	public void setAtivo(boolean ativo) {
+		this.ativo = ativo;
+	}
+
+	public boolean isEmExecucao() {
+		return emExecucao;
+	}
+
+	public void setEmExecucao(boolean emExecucao) {
+		this.emExecucao = emExecucao;
 	}
 
 }

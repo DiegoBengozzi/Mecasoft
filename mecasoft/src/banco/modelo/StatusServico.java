@@ -11,6 +11,8 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 
+import aplicacao.helper.UsuarioHelper;
+
 @Entity
 public class StatusServico implements Serializable{
 
@@ -24,13 +26,13 @@ public class StatusServico implements Serializable{
 	private Long id;
 	
 	@Column
-	private Date data;
+	private Date data = new Date();
 	
 	@ManyToOne
 	private Pessoa funcionario;
 	
 	@ManyToOne
-	private Usuario usuarioRegistro;
+	private Usuario usuarioRegistro = UsuarioHelper.getUsuarioLogado();
 	
 	@ManyToOne
 	private Status status;

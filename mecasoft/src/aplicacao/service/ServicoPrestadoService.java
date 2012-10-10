@@ -19,6 +19,10 @@ public class ServicoPrestadoService extends MecasoftService<ServicoPrestado>{
 	public void saveOrUpdate() {
 		getDAO().saveOrUpdate(servicoPrestado);
 	}
+	
+	public void saveOrUpdateAutomatic(){
+		getDAO().saveOrUpdateAutomatic(servicoPrestado);
+	}
 
 	@Override
 	public void delete() {
@@ -35,16 +39,29 @@ public class ServicoPrestadoService extends MecasoftService<ServicoPrestado>{
 		return getDAO().findAll();
 	}
 	
-	public List<ServicoPrestado> findAllByPeriodo(Date dataInicial, Date dataFinal){
-		return getDAO().findAllByPeriodo(dataInicial, dataFinal);
+	public List<ServicoPrestado> findAllAtivosByPeriodo(Date dataInicial, Date dataFinal){
+		return getDAO().findAllByPeriodoAndStatusAndConclusao(dataInicial, dataFinal, true, null);
+	}
+	
+	public List<ServicoPrestado> findAllNaoConcluidos(){
+		return getDAO().findAllByStatusAndConclusao(true, true);
 	}
 
+	public List<ServicoPrestado> findAllNaoConcluidosAutomatic(){
+		return getDAO().findAllByStatusAndConclusaoAutomatic(true, true);
+	}
+	
 	public ServicoPrestado getServicoPrestado() {
 		return servicoPrestado;
 	}
-
+	
 	public void setServicoPrestado(ServicoPrestado servicoPrestado) {
 		this.servicoPrestado = servicoPrestado;
+	}
+	
+	@Override
+	public Boolean isDirty() {
+		return getDAO().isDirty();
 	}
 
 }

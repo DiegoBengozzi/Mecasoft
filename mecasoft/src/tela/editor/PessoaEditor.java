@@ -25,6 +25,10 @@ import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.FocusAdapter;
+import org.eclipse.swt.events.FocusEvent;
+import org.eclipse.swt.events.KeyAdapter;
+import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -43,6 +47,7 @@ import org.eclipse.ui.IEditorSite;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.wb.swt.ResourceManager;
 
+import tela.componentes.MecasoftText;
 import tela.dialog.SelecionarItemDialog;
 import tela.editingSupport.ForneceProdutoEditingSupport;
 import tela.editor.editorInput.PessoaEditorInput;
@@ -50,7 +55,7 @@ import tela.editor.editorInput.VeiculoEditorInput;
 import aplicacao.exception.ValidationException;
 import aplicacao.helper.FormatterHelper;
 import aplicacao.helper.LayoutHelper;
-import aplicacao.helper.PadraoHelper;
+import aplicacao.helper.UsuarioHelper;
 import aplicacao.service.CepService;
 import aplicacao.service.PessoaService;
 import aplicacao.service.ProdutoServicoService;
@@ -60,11 +65,6 @@ import banco.modelo.ForneceProduto;
 import banco.modelo.ProdutoServico;
 import banco.modelo.TipoFuncionario;
 import banco.modelo.Veiculo;
-import tela.componentes.MecasoftText;
-import org.eclipse.swt.events.KeyAdapter;
-import org.eclipse.swt.events.KeyEvent;
-import org.eclipse.swt.events.FocusAdapter;
-import org.eclipse.swt.events.FocusEvent;
 
 
 public class PessoaEditor extends MecasoftEditor {
@@ -88,9 +88,6 @@ public class PessoaEditor extends MecasoftEditor {
 	private Button btnAtivo;
 	private Button btnCliente;
 	private Button btnFornecedor;
-	
-	private PessoaService service = new PessoaService();
-	private List<TipoFuncionario> tiposFuncionarios;
 	private TableViewer tvVeiculo;
 	private TableViewer tvProduto;
 	private Combo cbCargo;
@@ -103,9 +100,13 @@ public class PessoaEditor extends MecasoftEditor {
 	private MecasoftText txtCelular;
 	private MecasoftText txtCep;
 	private MecasoftText txtNumero;
+	
+	private PessoaService service = new PessoaService();
+	private TipoFuncionarioService tipoFuncionarioService = new TipoFuncionarioService();
+	private List<TipoFuncionario> tiposFuncionarios;
 
 	public PessoaEditor() {
-		tiposFuncionarios = new TipoFuncionarioService().findAll();
+		tiposFuncionarios = tipoFuncionarioService.findAll();
 	}
 
 	@Override
@@ -120,6 +121,13 @@ public class PessoaEditor extends MecasoftEditor {
 		
 		btnAtivo = new Button(compositeConteudo, SWT.CHECK);
 		btnAtivo.setText("Ativo");
+		
+		//verifica se a pessoa é definida como representante da empresa
+		//caso seja, o botao de ativo é desativado para que a pessoa não possa ser desativada
+		if(UsuarioHelper.getConfiguracaoPadrao() != null)
+			if(UsuarioHelper.getConfiguracaoPadrao().getRepresentanteEmpresa() != null)
+				if(UsuarioHelper.getConfiguracaoPadrao().getRepresentanteEmpresa().equals(service.getPessoa()))
+					btnAtivo.setEnabled(false);
 		
 		Label lblTipo = new Label(compositeConteudo, SWT.NONE);
 		lblTipo.setText("Tipo:");
@@ -149,15 +157,15 @@ public class PessoaEditor extends MecasoftEditor {
 		txtCpfCnpj.text.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
-				if(txtCpfCnpj.getText().length() > 14 && txtCpfCnpj.getCaracteres().equals(PadraoHelper.MECASOFTTXTCPF))
-					txtCpfCnpj.addChars(PadraoHelper.MECASOFTTXTCNPJ, new Integer[]{2, 5, 8, 12}, null, null);
-				else if(txtCpfCnpj.getText().length() <= 14 && txtCpfCnpj.getCaracteres().equals(PadraoHelper.MECASOFTTXTCNPJ))
-					txtCpfCnpj.addChars(PadraoHelper.MECASOFTTXTCPF, new Integer[]{3, 6, 9}, null, null);
+				if(txtCpfCnpj.getText().length() > 14 && txtCpfCnpj.getCaracteres().equals(FormatterHelper.MECASOFTTXTCPF))
+					txtCpfCnpj.addChars(FormatterHelper.MECASOFTTXTCNPJ, new Integer[]{2, 5, 8, 12}, null, null);
+				else if(txtCpfCnpj.getText().length() <= 14 && txtCpfCnpj.getCaracteres().equals(FormatterHelper.MECASOFTTXTCNPJ))
+					txtCpfCnpj.addChars(FormatterHelper.MECASOFTTXTCPF, new Integer[]{3, 6, 9}, null, null);
 			}
 		});
 		txtCpfCnpj.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 6, 1));
 		txtCpfCnpj.setOptions(MecasoftText.NUMEROS, 18);
-		txtCpfCnpj.addChars(PadraoHelper.MECASOFTTXTCPF, new Integer[]{3, 6, 9}, null, null);
+		txtCpfCnpj.addChars(FormatterHelper.MECASOFTTXTCPF, new Integer[]{3, 6, 9}, null, null);
 		
 		Label lblRginscricaoEst = new Label(compositeConteudo, SWT.NONE);
 		lblRginscricaoEst.setText("RG/Inscri\u00E7\u00E3o Est:");
@@ -166,20 +174,20 @@ public class PessoaEditor extends MecasoftEditor {
 		txtRgInscrEst.text.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
-				if(txtRgInscrEst.getText().length() > 11 && txtRgInscrEst.getCaracteres().equals(PadraoHelper.MECASOFTTXTRG))
-					txtRgInscrEst.addChars(PadraoHelper.MECASOFTTXTINSCRICAOESTADUAL, new Integer[]{3, 6, 9}, null, null);
-				else if(txtRgInscrEst.getText().length() <= 11 && txtRgInscrEst.getCaracteres().equals(PadraoHelper.MECASOFTTXTINSCRICAOESTADUAL))
-					txtRgInscrEst.addChars(PadraoHelper.MECASOFTTXTRG, new Integer[]{1, 4, 7}, null, null);
+				if(txtRgInscrEst.getText().length() > 11 && txtRgInscrEst.getCaracteres().equals(FormatterHelper.MECASOFTTXTRG))
+					txtRgInscrEst.addChars(FormatterHelper.MECASOFTTXTINSCRICAOESTADUAL, new Integer[]{3, 6, 9}, null, null);
+				else if(txtRgInscrEst.getText().length() <= 11 && txtRgInscrEst.getCaracteres().equals(FormatterHelper.MECASOFTTXTINSCRICAOESTADUAL))
+					txtRgInscrEst.addChars(FormatterHelper.MECASOFTTXTRG, new Integer[]{1, 4, 7}, null, null);
 			}
 		});
 		txtRgInscrEst.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 6, 1));
 		txtRgInscrEst.setOptions(MecasoftText.NUMEROS, 15);
-		txtRgInscrEst.addChars(PadraoHelper.MECASOFTTXTRG, new Integer[]{1, 4, 7}, null, null);
+		txtRgInscrEst.addChars(FormatterHelper.MECASOFTTXTRG, new Integer[]{1, 4, 7}, null, null);
 		
 		Label lblCartTrabalhoN = new Label(compositeConteudo, SWT.NONE);
 		lblCartTrabalhoN.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
 		lblCartTrabalhoN.setText("Cart. trabalho N\u00BA:");
-		
+		 
 		txtCartNum = new MecasoftText(compositeConteudo, SWT.NONE);
 		txtCartNum.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 3, 1));
 		txtCartNum.setOptions(MecasoftText.NUMEROS, 7);
@@ -190,7 +198,7 @@ public class PessoaEditor extends MecasoftEditor {
 		txtSerie = new MecasoftText(compositeConteudo, SWT.NONE);
 		txtSerie.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 2, 1));
 		txtSerie.setOptions(MecasoftText.NUMEROS, 5);
-		txtSerie.addChars(PadraoHelper.MECASOFTTXTSERIECARTEIRATRABALHO, new Integer[]{3}, null, null);
+		txtSerie.addChars(FormatterHelper.MECASOFTTXTSERIECARTEIRATRABALHO, new Integer[]{3}, null, null);
 		
 		Label lblSalario = new Label(compositeConteudo, SWT.NONE);
 		lblSalario.setText("Sal\u00E1rio:");
@@ -198,7 +206,7 @@ public class PessoaEditor extends MecasoftEditor {
 		txtSalario = new MecasoftText(compositeConteudo, SWT.NONE);
 		txtSalario.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 3, 1));
 		txtSalario.setOptions(MecasoftText.NUMEROS, -1);
-		txtSalario.addChars(PadraoHelper.MECASOFTTXTMOEDA, new Integer[]{-2}, null, null);
+		txtSalario.addChars(FormatterHelper.MECASOFTTXTMOEDA, new Integer[]{-2}, null, null);
 		
 		Label lblCargo = new Label(compositeConteudo, SWT.NONE);
 		lblCargo.setText("Cargo:");
@@ -213,7 +221,7 @@ public class PessoaEditor extends MecasoftEditor {
 		txtFoneFax = new MecasoftText(compositeConteudo, SWT.NONE);
 		txtFoneFax.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 3, 1));
 		txtFoneFax.setOptions(MecasoftText.NUMEROS, 14);
-		txtFoneFax.addChars(PadraoHelper.MECASOFTTXTTELEFONE, new Integer[]{0, 2, 2, 6}, null, null);
+		txtFoneFax.addChars(FormatterHelper.MECASOFTTXTTELEFONE, new Integer[]{0, 2, 2, 6}, null, null);
 		
 		Label lblCelular = new Label(compositeConteudo, SWT.NONE);
 		lblCelular.setText("Celular:");
@@ -221,7 +229,7 @@ public class PessoaEditor extends MecasoftEditor {
 		txtCelular = new MecasoftText(compositeConteudo, SWT.NONE);
 		txtCelular.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 2, 1));
 		txtCelular.setOptions(MecasoftText.NUMEROS, 14);
-		txtCelular.addChars(PadraoHelper.MECASOFTTXTTELEFONE, new Integer[]{0, 2, 2, 6}, null, null);
+		txtCelular.addChars(FormatterHelper.MECASOFTTXTTELEFONE, new Integer[]{0, 2, 2, 6}, null, null);
 		
 		Label lblEmail = new Label(compositeConteudo, SWT.NONE);
 		lblEmail.setText("E-mail:");
@@ -241,7 +249,7 @@ public class PessoaEditor extends MecasoftEditor {
 		});
 		txtCep.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 3, 1));
 		txtCep.setOptions(MecasoftText.NUMEROS, 9);
-		txtCep.addChars(PadraoHelper.MECASOFTTXTCEP, new Integer[]{5}, null, null);
+		txtCep.addChars(FormatterHelper.MECASOFTTXTCEP, new Integer[]{5}, null, null);
 		
 		Label lblCidade = new Label(compositeConteudo, SWT.NONE);
 		lblCidade.setText("Cidade:");
@@ -458,9 +466,18 @@ public class PessoaEditor extends MecasoftEditor {
 					return;
 				
 				if(openQuestion("Deseja realmente remover este produto da lista?")){
+					
 					ForneceProduto fp = (ForneceProduto)selecao.getFirstElement();
+					
+					if(fp.getId().getProduto().getListaFornecedores().size() == 1 && fp.getId().getProduto().getAtivo()){
+						setErroMessage("Não é possível remover este produto.\nDirija-se ao cadastro de produtos e desative-o, " +
+								"para que o fornecedor possa ser removido.");
+						return;
+					}
+					
 					service.getPessoa().getListaProduto().remove(fp);
 					tvProduto.refresh();
+					
 				}
 			}
 		});
@@ -491,48 +508,30 @@ public class PessoaEditor extends MecasoftEditor {
 	}
 
 	@Override
-	public void salvarRegistro() {
-		try {
-			validar(service.getPessoa());
+	public void salvarRegistro() throws ValidationException{
+		validar(service.getPessoa());
 			
-			if(service.getPessoa().getFoneFax().isEmpty() && service.getPessoa().getCelular().isEmpty()){
-				setErroMessage("Informe ao menos um telefone.");
-				return;
-			}
+		if(service.getPessoa().getFoneFax().isEmpty() && service.getPessoa().getCelular().isEmpty())
+			throw new ValidationException("Informe ao menos um telefone.");
 			
-			if(service.getPessoa().getTipoFuncionario()){
+		if(service.getPessoa().getTipoFuncionario()){
 				
-				if(service.getPessoa().getCarteiraNum().isEmpty()){
-					setErroMessage("Informe o número da carteira de trabalho.");
-					return;
-				}
-				
-				if(service.getPessoa().getSerie().isEmpty()){
-					setErroMessage("informe a série.");
-					return;
-				}
-				
-				if(service.getPessoa().getSalario() == null){
-					setErroMessage("Informe o salário.");
-					return;
-				}
-				
-				if(service.getPessoa().getTipo() == null){
-					setErroMessage("Selecione o cargo.");
-					return;
-				}
-				
-				
-			}
+			if(service.getPessoa().getCarteiraNum().isEmpty())
+				throw new ValidationException("Informe o número da carteira de trabalho.");
 			
-			service.saveOrUpdate();
+			if(service.getPessoa().getSerie().isEmpty())
+				throw new ValidationException("informe a série.");
+				
+			if(service.getPessoa().getSalario() == null)
+				throw new ValidationException("Informe o salário.");
 			
-			openInformation("Pessoa cadastrada com sucesso!");
-			closeThisEditor();
-			
-		} catch (ValidationException e) {
-			setErroMessage(e.getMessage());
+			if(service.getPessoa().getTipo() == null)
+				throw new ValidationException("Selecione o cargo.");
 		}
+			
+		service.saveOrUpdate();
+			
+		openInformation("Pessoa cadastrada com sucesso!");
 	}
 
 	@Override
@@ -545,13 +544,24 @@ public class PessoaEditor extends MecasoftEditor {
 		
 		PessoaEditorInput pei = (PessoaEditorInput)input;
 		
-		if(pei.getPessoa().getId() != null)
+		if(pei.getPessoa().getId() != null){
 			service.setPessoa(service.find(pei.getPessoa().getId()));
-		else
+			setPartName("Pessoa: " + service.getPessoa().getNomeFantasia());
+		}else
 			service.setPessoa(pei.getPessoa());
 		
 		setSite(site);
 		setInput(input);
+	}
+	
+	@Override
+	public void setFocus() {
+		tvProduto.refresh();
+		tvVeiculo.refresh();
+		
+		tiposFuncionarios = tipoFuncionarioService.findAll();
+		initDataBindings();
+		
 	}
 	
 	private ProdutoServico selecionarProduto(){
@@ -564,12 +574,6 @@ public class PessoaEditor extends MecasoftEditor {
 		sid.setElements(new ProdutoServicoService().findAllProdutos().toArray());
 		
 		return (ProdutoServico) sid.getElementoSelecionado();
-	}
-
-	@Override
-	public void setFocus() {
-		tvProduto.refresh();
-		tvVeiculo.refresh();
 	}
 	
 	@Override

@@ -1,18 +1,28 @@
 package aplicacao.guice;
 
+import banco.DAO.ConfiguracaoDAO;
+import banco.DAO.DuplicataDAO;
+import banco.DAO.DuplicataPagaDAO;
+import banco.DAO.FormaPagamentoDAO;
 import banco.DAO.PapelDAO;
 import banco.DAO.PessoaDAO;
 import banco.DAO.ProdutoServicoDAO;
 import banco.DAO.ServicoPrestadoDAO;
 import banco.DAO.StatusDAO;
+import banco.DAO.StatusServicoDAO;
 import banco.DAO.TipoFuncionarioDAO;
 import banco.DAO.TipoVeiculoDAO;
 import banco.DAO.UsuarioDAO;
 import banco.DAO.VeiculoDAO;
+import banco.utils.ConfiguracaoUtils;
+import banco.utils.DuplicataPagaUtils;
+import banco.utils.DuplicataUtils;
+import banco.utils.FormaPagamentoUtils;
 import banco.utils.PapelUtils;
 import banco.utils.PessoaUtils;
 import banco.utils.ProdutoServicoUtils;
 import banco.utils.ServicoPrestadoUtils;
+import banco.utils.StatusServicoUtils;
 import banco.utils.StatusUtils;
 import banco.utils.TipoFuncionarioUtils;
 import banco.utils.TipoVeiculoUtils;
@@ -34,6 +44,11 @@ public class MecasoftModule extends AbstractModule{
 		bind(ProdutoServicoUtils.class).to(ProdutoServicoDAO.class);
 		bind(StatusUtils.class).to(StatusDAO.class);
 		bind(ServicoPrestadoUtils.class).to(ServicoPrestadoDAO.class);
+		bind(FormaPagamentoUtils.class).to(FormaPagamentoDAO.class);
+		bind(DuplicataUtils.class).to(DuplicataDAO.class);
+		bind(ConfiguracaoUtils.class).to(ConfiguracaoDAO.class);
+		bind(StatusServicoUtils.class).to(StatusServicoDAO.class);
+		bind(DuplicataPagaUtils.class).to(DuplicataPagaDAO.class);
 	}
 
 }

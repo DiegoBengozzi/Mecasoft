@@ -30,6 +30,7 @@ import org.eclipse.wb.swt.ResourceManager;
 
 import tela.dialog.SelecionarItemDialog;
 import tela.editor.editorInput.UsuarioEditorInput;
+import aplicacao.exception.ValidationException;
 import aplicacao.helper.LayoutHelper;
 import aplicacao.helper.MessageHelper;
 import aplicacao.helper.ValidatorHelper;
@@ -49,12 +50,13 @@ public class UsuarioEditor extends MecasoftEditor{
 	private Button btnAtivo;
 	
 	private UsuarioService service = new UsuarioService();
+	private PapelService papelService = new PapelService();
 	private List<Papel> papeis;
 	
 	private ComboViewer comboViewer;
 	
 	public UsuarioEditor() {
-		papeis = new PapelService().findAll();
+		papeis = papelService.findAll();
 	}
 	
 	@Override
@@ -125,21 +127,15 @@ public class UsuarioEditor extends MecasoftEditor{
 	}
 
 	@Override
-	public void salvarRegistro() {
-		try {
-			ValidatorHelper.validar(service.getUsuario());
+	public void salvarRegistro() throws ValidationException{
+		ValidatorHelper.validar(service.getUsuario());
 			
-			if(!txtSenha.getText().equals(txtConfirmarSenha.getText())){
-				setErroMessage("Senha e confirmar senha não estão batendo.");
-				return;
-			}
+		if(!txtSenha.getText().equals(txtConfirmarSenha.getText()))
+			throw new ValidationException("Senha e confirmar senha não estão batendo.");
 			
-			service.saveOrUpdate();
-			MessageHelper.openInformation("Usuário salvo com sucesso!");
-			closeThisEditor();
-		} catch (aplicacao.exception.ValidationException e) {
-			setErroMessage(e.getMessage());
-		}
+		service.saveOrUpdate();
+		MessageHelper.openInformation("Usuário salvo com sucesso!");
+		
 	}
 
 	@Override
@@ -177,6 +173,14 @@ public class UsuarioEditor extends MecasoftEditor{
 		dialog.setElements(new PessoaService().findAllAtivosSemUsuario().toArray());
 		
 		return (Pessoa) dialog.getElementoSelecionado();
+	}
+	
+	@Override
+	public void setFocus() {
+		
+		papeis = papelService.findAll();
+		initDataBindings();
+		
 	}
 
 	protected DataBindingContext initDataBindings() {

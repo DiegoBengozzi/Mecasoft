@@ -7,6 +7,8 @@ import java.util.Date;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
+import org.eclipse.jface.viewers.DoubleClickEvent;
+import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
@@ -35,8 +37,9 @@ import tela.filter.ServicoPrestadoFilter;
 import aplicacao.helper.FormatterHelper;
 import aplicacao.service.ServicoPrestadoService;
 import banco.modelo.ServicoPrestado;
-import org.eclipse.jface.viewers.IDoubleClickListener;
-import org.eclipse.jface.viewers.DoubleClickEvent;
+import banco.modelo.StatusServico;
+
+import com.ibm.icu.util.Calendar;
 
 public class ServicoPrestadoView extends ViewPart {
 
@@ -56,11 +59,7 @@ public class ServicoPrestadoView extends ViewPart {
 	public ServicoPrestadoView() {
 		createActions();
 	}
-
-	/**
-	 * Create contents of the view part.
-	 * @param parent
-	 */
+	
 	@Override
 	public void createPartControl(Composite parent) {
 		Composite container = new Composite(parent, SWT.NONE);
@@ -93,9 +92,13 @@ public class ServicoPrestadoView extends ViewPart {
 		
 		txtDataInicial = new MecasoftText(frmServiosPrestados.getBody(), SWT.NONE);
 		txtDataInicial.setOptions(MecasoftText.NUMEROS, 10);
-		txtDataInicial.addChars("//", new Integer[]{2, 4}, null, null);
+		txtDataInicial.addChars(FormatterHelper.MECASOFTTXTDATA, new Integer[]{2, 4}, null, null);
 		formToolkit.adapt(txtDataInicial);
 		formToolkit.paintBordersFor(txtDataInicial);
+		
+		Calendar c = Calendar.getInstance();
+		c.add(Calendar.MONTH, -1);
+		txtDataInicial.setText(FormatterHelper.DATEFORMATDATA.format(c.getTime()));
 		
 		Label lblAte = new Label(frmServiosPrestados.getBody(), SWT.NONE);
 		formToolkit.adapt(lblAte, true, true);
@@ -103,9 +106,11 @@ public class ServicoPrestadoView extends ViewPart {
 		
 		txtDataFinal = new MecasoftText(frmServiosPrestados.getBody(), SWT.NONE);
 		txtDataFinal.setOptions(MecasoftText.NUMEROS, 10);
-		txtDataFinal.addChars("//", new Integer[]{2, 4}, null, null);
+		txtDataFinal.addChars(FormatterHelper.MECASOFTTXTDATA, new Integer[]{2, 4}, null, null);
 		formToolkit.adapt(txtDataFinal);
 		formToolkit.paintBordersFor(txtDataFinal);
+
+		txtDataFinal.setText(FormatterHelper.DATEFORMATDATA.format(new Date()));
 		
 		tvServicoPrestado = new TableViewer(frmServiosPrestados.getBody(), SWT.BORDER | SWT.FULL_SELECTION);
 		tvServicoPrestado.addDoubleClickListener(new IDoubleClickListener() {
@@ -169,8 +174,13 @@ public class ServicoPrestadoView extends ViewPart {
 		tvcMecanico.setLabelProvider(new ColumnLabelProvider(){
 			@Override
 			public String getText(Object element) {
-				ServicoPrestado sp = (ServicoPrestado)element;
-				return sp.getListaStatus().get(sp.getListaStatus().size()-1).getFuncionario().getNomeFantasia();
+				service.setServicoPrestado((ServicoPrestado)element);
+				StatusServico status = service.getServicoPrestado().getUltimoStatus();
+				
+				if(status != null)
+					return status.getFuncionario().getNomeFantasia();
+				
+				return "";
 			}
 		});
 		TableColumn tblclmnMecnico = tvcMecanico.getColumn();
@@ -181,12 +191,17 @@ public class ServicoPrestadoView extends ViewPart {
 		tvcStatus.setLabelProvider(new ColumnLabelProvider(){
 			@Override
 			public String getText(Object element) {
-				ServicoPrestado sp = (ServicoPrestado)element;
-				return sp.getListaStatus().get(sp.getListaStatus().size()-1).getStatus().getDescricao();
+				service.setServicoPrestado((ServicoPrestado)element);
+				StatusServico status = service.getServicoPrestado().getUltimoStatus();
+				
+				if(status != null)
+					return status.getStatus().getDescricao();
+				
+				return "";
 			}
 		});
 		TableColumn tblclmnStatusAtual = tvcStatus.getColumn();
-		tblclmnStatusAtual.setWidth(95);
+		tblclmnStatusAtual.setWidth(137);
 		tblclmnStatusAtual.setText("Status Atual");
 		frmServiosPrestados.getToolBarManager().add(actionAtualizar);
 		frmServiosPrestados.getToolBarManager().add(actionNovo);
@@ -205,14 +220,14 @@ public class ServicoPrestadoView extends ViewPart {
 					Date dtFinal = null;
 					
 					try{
-						dtInicial = FormatterHelper.DATEFORMAT.parse(txtDataInicial.getText());
-						dtFinal = FormatterHelper.DATEFORMAT.parse(txtDataFinal.getText());
+						dtInicial = FormatterHelper.DATEFORMATDATA.parse(txtDataInicial.getText());
+						dtFinal = FormatterHelper.DATEFORMATDATA.parse(txtDataFinal.getText());
 					}catch(Exception e){
 						openError("Informe as datas corretamente.");
 						return;
 					}
 
-					tvServicoPrestado.setInput(service.findAllByPeriodo(dtInicial, dtFinal));
+					tvServicoPrestado.setInput(service.findAllAtivosByPeriodo(dtInicial, dtFinal));
 					tvServicoPrestado.refresh();
 				}
 			};
@@ -234,7 +249,7 @@ public class ServicoPrestadoView extends ViewPart {
 
 	@Override
 	public void setFocus() {
-		// Set the focus
+		actionAtualizar.run();
 	}
 
 }

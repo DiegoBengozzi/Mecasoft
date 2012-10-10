@@ -30,13 +30,13 @@ public class ItemServico implements Serializable{
 	private BigDecimal total;
 	
 	@Column
-	private BigDecimal acrescimo;
+	private BigDecimal acrescimo = BigDecimal.ZERO;
 	
 	@Column
 	private BigDecimal valorUnitario;
 	
 	@Column
-	private BigDecimal desconto;
+	private BigDecimal desconto = BigDecimal.ZERO;
 	
 	@Column
 	private String descricao;

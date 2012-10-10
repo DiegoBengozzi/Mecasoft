@@ -30,7 +30,7 @@ public class ProdutoServico implements Serializable{
 	private static final long serialVersionUID = 4257821782999163779L;
 	
 	public static String TIPOPRODUTO = "produto";
-	public static String TIPOSERVICO = "servico";
+	public static String TIPOSERVICO = "serviço";
 
 	@Id
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
@@ -38,6 +38,9 @@ public class ProdutoServico implements Serializable{
 	
 	@Column
 	private boolean ativo = true;
+	
+	@Column
+	private boolean estocavel;
 	
 	@Column
 	@NotEmpty(message="Informe a descrição.")
@@ -58,13 +61,13 @@ public class ProdutoServico implements Serializable{
 	@Column(precision=14,scale=2)
 	private BigDecimal custo = BigDecimal.ZERO;
 	
-	@OneToMany(mappedBy="id.produto")
+	@OneToMany(mappedBy="id.produto", orphanRemoval=true)
 	@Cascade(value= {CascadeType.ALL})
 	private List<ForneceProduto> listaFornecedores = new ArrayList<ForneceProduto>();
 	
 	@ManyToMany
 	@Cascade(value={CascadeType.ALL})
-	@JoinTable(name="prosutoServicoParametrizado",
+	@JoinTable(name="produtoServicoParametrizado",
 		joinColumns={
 			@JoinColumn(name="servico_id", referencedColumnName = "id")
 		},
@@ -184,6 +187,14 @@ public class ProdutoServico implements Serializable{
 		} else if (!id.equals(other.id))
 			return false;
 		return true;
+	}
+
+	public boolean isEstocavel() {
+		return estocavel;
+	}
+
+	public void setEstocavel(boolean estocavel) {
+		this.estocavel = estocavel;
 	}
 	
 }
