@@ -37,8 +37,10 @@ import aplicacao.helper.ValidatorHelper;
 import aplicacao.service.PapelService;
 import aplicacao.service.PessoaService;
 import aplicacao.service.UsuarioService;
+import banco.connection.HibernateConnection;
 import banco.modelo.Papel;
 import banco.modelo.Pessoa;
+import banco.modelo.Usuario;
 
 public class UsuarioEditor extends MecasoftEditor{
 	public static final String ID = "tela.editor.usuarioEditor"; //$NON-NLS-1$
@@ -132,6 +134,11 @@ public class UsuarioEditor extends MecasoftEditor{
 			
 		if(!txtSenha.getText().equals(txtConfirmarSenha.getText()))
 			throw new ValidationException("Senha e confirmar senha não estão batendo.");
+		
+		//usuario unico
+		Usuario usuarioUnico = service.findByLogin(service.getUsuario().getLogin());
+		if(usuarioUnico != null && !service.getUsuario().equals(usuarioUnico))
+			throw new ValidationException("Já existe um usuário com o login informado.");
 			
 		service.saveOrUpdate();
 		MessageHelper.openInformation("Usuário salvo com sucesso!");
@@ -177,6 +184,9 @@ public class UsuarioEditor extends MecasoftEditor{
 	
 	@Override
 	public void setFocus() {
+		
+		if(HibernateConnection.isSessionRefresh(service.getUsuario()) && service.getUsuario().getId() != null)
+			service.setUsuario(service.find(service.getUsuario().getId()));
 		
 		papeis = papelService.findAll();
 		initDataBindings();

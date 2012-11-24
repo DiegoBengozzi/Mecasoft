@@ -37,6 +37,7 @@ import tela.componentes.MecasoftText;
 import tela.dialog.BaixarDuplicataDialog;
 import tela.filter.BaixaDuplicataFilter;
 import aplicacao.helper.FormatterHelper;
+import aplicacao.helper.UsuarioHelper;
 import aplicacao.service.DuplicataService;
 import banco.modelo.Duplicata;
 
@@ -92,6 +93,13 @@ public class BaixaDuplicataView extends ViewPart {
 		lblPerodoDe.setText("Per\u00EDodo de");
 		
 		txtDataInicial = new MecasoftText(frmBaixaDeDuplicatas.getBody(), SWT.NONE);
+		txtDataInicial.text.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyReleased(KeyEvent e) {
+				if(e.keyCode == SWT.CR)
+					actionBuscarPeriodo.run();
+			}
+		});
 		txtDataInicial.setOptions(MecasoftText.NUMEROS, 10);
 		txtDataInicial.addChars(FormatterHelper.MECASOFTTXTDATA, new Integer[]{2, 4}, null, null);
 		GridData gd_txtDataInicial = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
@@ -103,13 +111,20 @@ public class BaixaDuplicataView extends ViewPart {
 		//seta a data inicial como 1 mes atraz
 		Calendar dtInicial = Calendar.getInstance();
 		dtInicial.add(Calendar.MONTH, -1);
-		txtDataInicial.setText(FormatterHelper.DATEFORMATDATA.format(dtInicial.getTime()));
+		txtDataInicial.setText(FormatterHelper.getDateFormatData().format(dtInicial.getTime()));
 		
 		Label lblAte = new Label(frmBaixaDeDuplicatas.getBody(), SWT.NONE);
 		formToolkit.adapt(lblAte, true, true);
 		lblAte.setText("at\u00E9");
 		
 		txtDataFinal = new MecasoftText(frmBaixaDeDuplicatas.getBody(), SWT.NONE);
+		txtDataFinal.text.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyReleased(KeyEvent e) {
+				if(e.keyCode == SWT.CR)
+					actionBuscarPeriodo.run();
+			}
+		});
 		txtDataFinal.setOptions(MecasoftText.NUMEROS, 10);
 		txtDataFinal.addChars(FormatterHelper.MECASOFTTXTDATA, new Integer[]{2, 4}, null, null);
 		GridData gd_txtDataFinal = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
@@ -120,7 +135,7 @@ public class BaixaDuplicataView extends ViewPart {
 		
 		//seta a data final com a data atual
 		Calendar dtFinal = Calendar.getInstance();
-		txtDataFinal.setText(FormatterHelper.DATEFORMATDATA.format(dtFinal.getTime()));	
+		txtDataFinal.setText(FormatterHelper.getDateFormatData().format(dtFinal.getTime()));	
 		
 		tvDuplicata = new TableViewer(frmBaixaDeDuplicatas.getBody(), SWT.BORDER | SWT.FULL_SELECTION);
 		table = tvDuplicata.getTable();
@@ -157,7 +172,7 @@ public class BaixaDuplicataView extends ViewPart {
 		tvcDataVencimento.setLabelProvider(new ColumnLabelProvider(){
 			@Override
 			public String getText(Object element) {
-				return FormatterHelper.DATEFORMATDATA.format(((Duplicata)element).getDataVencimento());
+				return FormatterHelper.getDateFormatData().format(((Duplicata)element).getDataVencimento());
 			}
 		});
 		TableColumn tblclmnDataVencimento = tvcDataVencimento.getColumn();
@@ -189,8 +204,15 @@ public class BaixaDuplicataView extends ViewPart {
 				if(selecao.isEmpty())
 					return;
 				
+				if(UsuarioHelper.getCaixa() == null){
+					openError("O caixa esta fechado.\nAbra-o primeiro para depois baixar as duplicatas.");
+					return;
+				}
+				
 				Duplicata duplicata = (Duplicata)selecao.getFirstElement();
 				new BaixarDuplicataDialog(getActiveShell(), duplicata).open();
+				
+				actionBuscarPeriodo.run();
 				
 			}
 		});
@@ -215,7 +237,13 @@ public class BaixaDuplicataView extends ViewPart {
 		{
 			actionBaixar = new Action("Baixar duplicata") {				@Override
 				public void run() {
+					if(UsuarioHelper.getCaixa() == null){
+						openError("O caixa esta fechado.\nAbra-o primeiro para depois baixar as duplicatas.");
+						return;
+					}
+					
 					new BaixarDuplicataDialog(getActiveShell(), new Duplicata()).open();
+					actionBuscarPeriodo.run();
 				}
 			};
 			actionBaixar.setImageDescriptor(ResourceManager.getPluginImageDescriptor("mecasoft", "assents/duplicata/baixar20.png"));
@@ -226,8 +254,8 @@ public class BaixaDuplicataView extends ViewPart {
 					Date dtInicial;
 					Date dtFinal;
 					try{
-						dtInicial = FormatterHelper.DATEFORMATDATA.parse(txtDataInicial.getText());
-						dtFinal = FormatterHelper.DATEFORMATDATA.parse(txtDataFinal.getText());
+						dtInicial = FormatterHelper.getDateFormatData().parse(txtDataInicial.getText());
+						dtFinal = FormatterHelper.getDateFormatData().parse(txtDataFinal.getText());
 					}catch(Exception e){
 						openError("Informe o período corretamente.");
 						return;

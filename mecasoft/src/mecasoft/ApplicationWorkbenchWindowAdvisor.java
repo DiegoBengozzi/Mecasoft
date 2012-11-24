@@ -2,8 +2,6 @@ package mecasoft;
 
 import static aplicacao.helper.MessageHelper.openQuestion;
 
-import java.util.List;
-
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.ui.application.ActionBarAdvisor;
 import org.eclipse.ui.application.IActionBarConfigurer;
@@ -12,11 +10,12 @@ import org.eclipse.ui.application.WorkbenchWindowAdvisor;
 import org.eclipse.ui.handlers.IHandlerService;
 
 import aplicacao.helper.UsuarioHelper;
-import aplicacao.service.ConfiguracaoService;
-import banco.modelo.Configuracao;
+import aplicacao.service.CaixaService;
 
 public class ApplicationWorkbenchWindowAdvisor extends WorkbenchWindowAdvisor {
 
+	private CaixaService caixaService = new CaixaService();
+	
 	public ApplicationWorkbenchWindowAdvisor(IWorkbenchWindowConfigurer configurer) {
 		super(configurer);
 	}
@@ -50,16 +49,14 @@ public class ApplicationWorkbenchWindowAdvisor extends WorkbenchWindowAdvisor {
 		return openQuestion("Tem certeza que deseja finalizar o sistema?");
 	}
 	
+	public void verificacaoCaixa(){
+		UsuarioHelper.setCaixa(caixaService.findCaixaAtual());
+	}
+	
 	@Override
 	public void postWindowOpen() {
 		verificacaoMenus();
-		verificarConfiguracoes();
+		verificacaoCaixa();
 	}
 	
-	public void verificarConfiguracoes(){
-		List<Configuracao> configuracoes = new ConfiguracaoService().findAll();
-		
-		if(!configuracoes.isEmpty())
-			UsuarioHelper.setConfiguracaoPadrao(configuracoes.get(0));
-	}
 }

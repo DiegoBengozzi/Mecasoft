@@ -20,6 +20,7 @@ import org.eclipse.core.databinding.observable.value.IObservableValue;
 import org.eclipse.jface.databinding.swt.SWTObservables;
 import org.eclipse.jface.databinding.viewers.ObservableListContentProvider;
 import org.eclipse.jface.databinding.viewers.ObservableMapLabelProvider;
+import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.jface.viewers.ComboViewer;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -45,6 +46,7 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.wb.swt.ResourceManager;
 import org.eclipse.wb.swt.SWTResourceManager;
 
+import tela.dialog.ConfiguracaoDialog;
 import tela.dialog.SelecionarItemDialog;
 import tela.editingSupport.AcrescimoItemServicoEditingSupport;
 import tela.editingSupport.DataStatusServicoEditinfSupport;
@@ -64,6 +66,7 @@ import aplicacao.service.ProdutoServicoService;
 import aplicacao.service.ServicoPrestadoService;
 import aplicacao.service.StatusService;
 import aplicacao.service.StatusServicoService;
+import banco.connection.HibernateConnection;
 import banco.modelo.ItemServico;
 import banco.modelo.Pessoa;
 import banco.modelo.ProdutoServico;
@@ -120,7 +123,6 @@ public class AbrirOrdemServicoEditor extends MecasoftEditor {
 			
 		service.saveOrUpdate();
 		openInformation("Ordem de serviço registrada com sucesso!");
-		closeThisEditor();
 	}
 
 	@Override
@@ -156,7 +158,7 @@ public class AbrirOrdemServicoEditor extends MecasoftEditor {
 		btnSelecionarCliente.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
 		btnSelecionarCliente.setImage(ResourceManager.getPluginImage("mecasoft", "assents/funcoes/find16.png"));
 		btnSelecionarCliente.setText("Selecionar");
-		btnSelecionarCliente.setEnabled(service.getServicoPrestado().getId() == null);
+//		btnSelecionarCliente.setEnabled(service.getServicoPrestado().getId() == null);
 		
 		Label lblVeculo = new Label(compositeConteudo, SWT.NONE);
 		lblVeculo.setText("Ve\u00EDculo:");
@@ -180,7 +182,7 @@ public class AbrirOrdemServicoEditor extends MecasoftEditor {
 		btnSelecionarVeiculo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
 		btnSelecionarVeiculo.setImage(ResourceManager.getPluginImage("mecasoft", "assents/funcoes/find16.png"));
 		btnSelecionarVeiculo.setText("Selecionar");
-		btnSelecionarVeiculo.setEnabled(service.getServicoPrestado().getId() == null);
+//		btnSelecionarVeiculo.setEnabled(service.getServicoPrestado().getId() == null);
 		
 		Label lblServicosPrestados = new Label(compositeConteudo, SWT.NONE);
 		lblServicosPrestados.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1));
@@ -655,7 +657,7 @@ public class AbrirOrdemServicoEditor extends MecasoftEditor {
 		tvcData.setLabelProvider(new ColumnLabelProvider(){
 			@Override
 			public String getText(Object element) {
-				return FormatterHelper.DATEFORMATDATAHORA.format(((StatusServico)element).getData());
+				return FormatterHelper.getDateFormatData("dd/MM/yyyy HH:mm").format(((StatusServico)element).getData());
 			}
 
 			@Override
@@ -699,8 +701,26 @@ public class AbrirOrdemServicoEditor extends MecasoftEditor {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				if(openQuestion("Deseja realmente cancelar esta ordem de serviço?")){
+					
+					//verifica se o usuario ja configurou os status
+					if(UsuarioHelper.getConfiguracaoPadrao() == null){
+						openError("Registre nas configurações os status padrões para poder cancelar a ordem de serviço.");
+						ConfiguracaoDialog cd = new ConfiguracaoDialog(getActiveShell());
+						if(cd.open() != IDialogConstants.OK_ID)
+							return;
+					}
+					
 					service.getServicoPrestado().setAtivo(false);
 					service.getServicoPrestado().setEmExecucao(false);
+					
+					//cria o status de concluido
+					StatusServico statusConcluido = new StatusServico();
+					statusConcluido.setFuncionario(service.getServicoPrestado().getUltimoStatus().getFuncionario());
+					statusConcluido.setServicoPrestado(service.getServicoPrestado());
+					statusConcluido.setStatus(UsuarioHelper.getConfiguracaoPadrao().getStatusFinalizarServico());
+			
+					//adiciona o status de concluido na lista de status do serviço
+					service.getServicoPrestado().getListaStatus().add(statusConcluido);
 					
 					calcularTotais();
 					
@@ -722,6 +742,11 @@ public class AbrirOrdemServicoEditor extends MecasoftEditor {
 			public void widgetSelected(SelectionEvent e) {
 				try {
 					calcularTotais();
+					
+					if(service.getServicoPrestado().getListaStatus().isEmpty()){
+						setErroMessage("Adicione ao menos um status.");
+						return;
+					}
 					
 					getSite().getPage().openEditor(new FecharOrdemServicoEditorInput(service.getServicoPrestado()), FecharOrdemServicoEditor.ID);
 				} catch (PartInitException e1) {
@@ -750,7 +775,6 @@ public class AbrirOrdemServicoEditor extends MecasoftEditor {
 		
 		setShowExcluir(false);
 		setShowSalvar(service.getServicoPrestado().isEmExecucao());
-//		service.organizarListas();
 		
 		setSite(site);
 		setInput(input);
@@ -858,18 +882,24 @@ public class AbrirOrdemServicoEditor extends MecasoftEditor {
 	
 	@Override
 	public void setFocus() {
+		
+		if(!HibernateConnection.isSessionRefresh(service.getServicoPrestado()) && service.getServicoPrestado().getId() != null)
+			service.setServicoPrestado(service.find(service.getServicoPrestado().getId()));
+		
 		listaStatus = statusService.findAllAtivos();
 		initDataBindings();
 		if(!service.getServicoPrestado().isEmExecucao())
 			disposeSalvar();
 		
 		setEnableButtonCancelFechar();
+		btnSelecionarCliente.setEnabled(service.getServicoPrestado().getId() == null);
+		btnSelecionarVeiculo.setEnabled(service.getServicoPrestado().getId() == null);
 	}
 	
 	public void setEnableButtonCancelFechar(){
 		btnCancelarOrdem.setEnabled(service.getServicoPrestado().isAtivo()
+				&& service.getServicoPrestado().isEmExecucao()
 				&& service.getServicoPrestado().getId() != null
-				&& service.getServicoPrestado().getListaProdutos().size() == 0
 				&& service.getServicoPrestado().getListaServicos().size() == 0);
 		
 		btnFecharOrdem.setEnabled(service.getServicoPrestado().isEmExecucao());

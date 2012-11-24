@@ -72,11 +72,6 @@ public abstract class MecasoftEditor extends EditorPart implements ISaveablePart
 				} catch (ValidationException e4) {
 					setErroMessage(e4.getMessage());
 					return;
-				}catch(Exception ex){
-					if(ex.getMessage().contains("(login)=(admin) já existe")){
-						setErroMessage("Já existe um usuário com o login informado.");
-						return;
-					}
 				}
 			}
 		});
@@ -151,10 +146,6 @@ public abstract class MecasoftEditor extends EditorPart implements ISaveablePart
 	}
 	
 	@Override
-	public void setFocus() {
-	}
-	
-	@Override
 	public int promptToSaveOnClose() {
 		SimNaoCancelarDialog sncd = new SimNaoCancelarDialog(getActiveShell(), "Os dados foram alterados, deseja salvar antes de sair?");
 		try {
@@ -173,10 +164,7 @@ public abstract class MecasoftEditor extends EditorPart implements ISaveablePart
 			}
 		
 		} catch (ValidationException e) {
-			e.printStackTrace();
-		}catch(Exception ex){
-			if(ex.getMessage().contains("(login)=(admin) já existe"))
-				setErroMessage("Já existe um usuário com o login informado.");
+			setErroMessage(e.getMessage());
 		}
 		
 		return CANCEL;

@@ -60,6 +60,7 @@ import aplicacao.service.CepService;
 import aplicacao.service.PessoaService;
 import aplicacao.service.ProdutoServicoService;
 import aplicacao.service.TipoFuncionarioService;
+import banco.connection.HibernateConnection;
 import banco.modelo.Cep;
 import banco.modelo.ForneceProduto;
 import banco.modelo.ProdutoServico;
@@ -286,7 +287,7 @@ public class PessoaEditor extends MecasoftEditor {
 		txtComplemento.setLayoutData(gd_txtComplemento);
 		
 		Label lblVeculos = new Label(compositeConteudo, SWT.NONE);
-		lblVeculos.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1));
+		lblVeculos.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1));	
 		lblVeculos.setText("Ve\u00EDculos:");
 		
 		tvVeiculo = new TableViewer(compositeConteudo, SWT.BORDER | SWT.FULL_SELECTION);
@@ -476,6 +477,8 @@ public class PessoaEditor extends MecasoftEditor {
 					}
 					
 					service.getPessoa().getListaProduto().remove(fp);
+					fp.getId().getProduto().getListaFornecedores().remove(fp);
+					
 					tvProduto.refresh();
 					
 				}
@@ -489,7 +492,11 @@ public class PessoaEditor extends MecasoftEditor {
 	}
 	
 	public void completarEndereco(){
-		Cep endereco = new CepService().getEndereco(txtCep.getTextoSemFormatacao());
+		Cep endereco = null;
+		String cep = txtCep.getTextoSemFormatacao();
+		
+		if(cep != null && !cep.isEmpty())
+			endereco = new CepService().getEndereco(cep);
 		
 		if(endereco != null){
 			txtCidade.setText(endereco.getCidade());
@@ -556,6 +563,10 @@ public class PessoaEditor extends MecasoftEditor {
 	
 	@Override
 	public void setFocus() {
+
+		if(!HibernateConnection.isSessionRefresh(service.getPessoa()) && service.getPessoa().getId() != null)
+			service.setPessoa(service.find(service.getPessoa().getId()));
+		
 		tvProduto.refresh();
 		tvVeiculo.refresh();
 		
@@ -580,6 +591,7 @@ public class PessoaEditor extends MecasoftEditor {
 	public boolean isDirty() {
 		return service.isDirty();
 	}
+	
 	protected DataBindingContext initDataBindings() {
 		DataBindingContext bindingContext = new DataBindingContext();
 		//

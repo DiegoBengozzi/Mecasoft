@@ -26,5 +26,8 @@
 		<mapping class="banco.modelo.Duplicata"/>
 		<mapping class="banco.modelo.Configuracao"/>
 		<mapping class="banco.modelo.DuplicataPaga"/>
+		<mapping class="banco.modelo.Caixa"/>
+		<mapping class="banco.modelo.MovimentacaoEstoque"/>
+		<mapping class="banco.modelo.MovimentacaoCaixa"/>
 	</session-factory>
 </hibernate-configuration>

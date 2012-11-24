@@ -5,11 +5,11 @@ import java.util.List;
 
 import org.hibernate.Query;
 
-import com.ibm.icu.util.Calendar;
-
 import banco.connection.HibernateConnection;
 import banco.modelo.ServicoPrestado;
 import banco.utils.ServicoPrestadoUtils;
+
+import com.ibm.icu.util.Calendar;
 
 public class ServicoPrestadoDAO extends HibernateConnection implements
 		ServicoPrestadoUtils {

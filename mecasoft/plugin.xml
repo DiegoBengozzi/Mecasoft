@@ -91,6 +91,11 @@
             id="tela.editor.FormaPagamentoEditor"
             name="Forma de pagamento">
       </editor>
+      <editor
+            class="tela.editor.StatusFuncionarioEditor"
+            id="tela.editor.StatusFuncionarioEditor"
+            name="Status geral do funcionário">
+      </editor>
    </extension>
    <extension
          point="org.eclipse.ui.views">
@@ -175,6 +180,17 @@
             class="tela.view.DuplicataPagaView"
             id="tela.view.DuplicataPagaView"
             name="Lista de duplicatas pagas">
+      </view>
+      <view
+            class="tela.view.StatusFuncionarioView"
+            id="tela.view.StatusFuncionarioView"
+            name="Status atual dos funcionários">
+      </view>
+      <view
+            class="tela.view.MovimentacaoCaixaView"
+            icon="assents/caixa/movimentacaoCaixa16.png"
+            id="tela.view.MovimentacaoCaixaView"
+            name="Movimentações no caixa">
       </view>
    </extension>
    <extension
@@ -310,15 +326,27 @@
          </menu>
          <menu
                label="Financeiro">
-            <command
-                  commandId="org.eclipse.ui.views.showView"
-                  id="mecasoft.menuServicoPrestado"
+            <menu
                   label="Serviço">
-               <parameter
-                     name="org.eclipse.ui.views.showView.viewId"
-                     value="tela.view.ServicoPrestadoView">
-               </parameter>
-            </command>
+               <command
+                     commandId="org.eclipse.ui.views.showView"
+                     id="mecasoft.menuServicoPrestado"
+                     label="Serviços">
+                  <parameter
+                        name="org.eclipse.ui.views.showView.viewId"
+                        value="tela.view.ServicoPrestadoView">
+                  </parameter>
+               </command>
+               <command
+                     commandId="org.eclipse.ui.views.showView"
+                     id="mecasoft.menuStatusFuncionario"
+                     label="Status dos funcionários">
+                  <parameter
+                        name="org.eclipse.ui.views.showView.viewId"
+                        value="tela.view.StatusFuncionarioView">
+                  </parameter>
+               </command>
+            </menu>
             <menu
                   label="Duplicatas">
                <command
@@ -333,7 +361,7 @@
                </command>
                <command
                      commandId="org.eclipse.ui.views.showView"
-                     label="Baixa de duplicatas"
+                     label="Duplicatas pagas"
                      style="push">
                   <parameter
                         name="org.eclipse.ui.views.showView.viewId"
@@ -341,6 +369,47 @@
                   </parameter>
                </command>
             </menu>
+            <menu
+                  label="Caixa">
+               <command
+                     commandId="mecasoft.abrirFecharCaixaCommand"
+                     icon="assents/caixa/openCaixa16.png"
+                     label="Abrir/Fechar caixa"
+                     style="push">
+               </command>
+               <command
+                     commandId="mecasoft.sangriaCaixaCommand"
+                     icon="assents/caixa/sangriaCaixa16.png"
+                     label="Sangria de caixa"
+                     style="push">
+               </command>
+               <command
+                     commandId="mecasoft.suprimentoCaixaCommand"
+                     icon="assents/caixa/suprimentoCaixa16.png"
+                     label="Suprimento de caixa"
+                     style="push">
+               </command>
+               <command
+                     commandId="org.eclipse.ui.views.showView"
+                     icon="assents/caixa/movimentacaoCaixa16.png"
+                     id="mecasoft.menuServicoPrestado"
+                     label="Movimentações no caixa">
+                  <parameter
+                        name="org.eclipse.ui.views.showView.viewId"
+                        value="tela.view.MovimentacaoCaixaView">
+                  </parameter>
+               </command>
+            </menu>
+            <command
+                  commandId="mecasoft.pagamentoFuncionarioCommand"
+                  label="Pagamento de funcionários"
+                  style="push">
+            </command>
+            <command
+                  commandId="mecasoft.movimentacaoEstoqueCommand"
+                  label="Movimentação no estoque"
+                  style="push">
+            </command>
          </menu>
          <menu
                label="Relatório">
@@ -352,6 +421,26 @@
             <command
                   commandId="mecasoft.showServicoAnaliticoCommand"
                   label="Serviço analítico"
+                  style="push">
+            </command>
+            <command
+                  commandId="mecasoft.showDuplicataCommand"
+                  label="Duplicatas"
+                  style="push">
+            </command>
+            <command
+                  commandId="mecasoft.showFluxoTrabalhoCommand"
+                  label="Fluxo de trabalho"
+                  style="push">
+            </command>
+            <command
+                  commandId="mecasoft.showMovimentacaoCaixaCommand"
+                  label="Movimentação de caixa"
+                  style="push">
+            </command>
+            <command
+                  commandId="mecasoft.showLivroCaixaCommand"
+                  label="Livro de caixa"
                   style="push">
             </command>
          </menu>
@@ -388,6 +477,51 @@
             defaultHandler="aplicacao.command.reports.ShowServicoAnaliticoCommand"
             id="mecasoft.showServicoAnaliticoCommand"
             name="Relatório de serviços analítico">
+      </command>
+      <command
+            defaultHandler="aplicacao.command.reports.ShowDuplicataCommand"
+            id="mecasoft.showDuplicataCommand"
+            name="Relatório de duplicatas">
+      </command>
+      <command
+            defaultHandler="aplicacao.command.reports.ShowFluxoTrabalhoCommand"
+            id="mecasoft.showFluxoTrabalhoCommand"
+            name="Relatório de fluxo de trabalho">
+      </command>
+      <command
+            defaultHandler="aplicacao.command.AbrirFecharCaixaCommand"
+            id="mecasoft.abrirFecharCaixaCommand"
+            name="Abrir/Fechar caixa">
+      </command>
+      <command
+            defaultHandler="aplicacao.command.SangriaCaixaCommand"
+            id="mecasoft.sangriaCaixaCommand"
+            name="Sangria de caixa">
+      </command>
+      <command
+            defaultHandler="aplicacao.command.SuprimentoCaixaCommand"
+            id="mecasoft.suprimentoCaixaCommand"
+            name="Suprimento de caixa">
+      </command>
+      <command
+            defaultHandler="aplicacao.command.PagamentoFuncionarioCommand"
+            id="mecasoft.pagamentoFuncionarioCommand"
+            name="Pagamento de funcionários">
+      </command>
+      <command
+            defaultHandler="aplicacao.command.reports.ShowMovimentacaoCaixaCommand"
+            id="mecasoft.showMovimentacaoCaixaCommand"
+            name="Movimentação de caixa">
+      </command>
+      <command
+            defaultHandler="aplicacao.command.reports.ShowLivroCaixaCommand"
+            id="mecasoft.showLivroCaixaCommand"
+            name="Livro de caixa">
+      </command>
+      <command
+            defaultHandler="aplicacao.command.MovimentacaoEstoqueCommand"
+            id="mecasoft.movimentacaoEstoqueCommand"
+            name="Movimentação do estoque">
       </command>
    </extension>
    <extension
@@ -489,6 +623,22 @@
             isEqualityPattern="false"
             pattern="mecasoft/mecasoft.menuStatus">
       </activityPatternBinding>
+   </extension>
+   <extension
+         id="product"
+         point="org.eclipse.core.runtime.products">
+      <product
+            application="mecasoft.application"
+            name="MECASOFT">
+         <property
+               name="windowImages"
+               value="assents/logo/mecanica16X16.png,assents/logo/mecanica32X32.png,assents/logo/mecanica64X64.png">
+         </property>
+         <property
+               name="appName"
+               value="MECASOFT">
+         </property>
+      </product>
    </extension>
 
 </plugin>
